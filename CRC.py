@@ -1,65 +1,102 @@
-def xor(dividend, divisor):
-    """Perform XOR operation between dividend and divisor."""
-    result = ''
-    for i in range(1, len(divisor)):  # Skip the first bit
-        result += '0' if dividend[i] == divisor[i] else '1'
-    return result
+import java.util.Scanner;
 
+public class Main {
 
-def crc(data, gen_poly):
-    """Compute the CRC check value using the provided generator polynomial."""
-    data_length = len(data)
-    gen_length = len(gen_poly)
+    // XOR operation for binary strings
+    public static String xor(String dividend, String divisor) {
+        StringBuilder result = new StringBuilder();
+        for (int i = 1; i < divisor.length(); i++) {
+            result.append(dividend.charAt(i) == divisor.charAt(i) ? '0' : '1');
+        }
+        return result.toString();
+    }
 
-    # Append n-1 zeros to the data
-    padded_data = data + '0' * (gen_length - 1)
-    check_value = padded_data[:gen_length]
+    // CRC computation using the given generator polynomial
+    public static String crc(String data, String genPoly) {
+        int genLength = genPoly.length();
 
-    for i in range(data_length):
-        if check_value[0] == '1':
-            # XOR operation if the first bit is 1
-            check_value = xor(check_value, gen_poly)
-        else:
-            # Retain original check value if first bit is 0
-            check_value = check_value[1:]
-        # Shift left and add the next data bit
-        if i + gen_length < len(padded_data):
-            check_value += padded_data[i + gen_length]
+        // Append n-1 zeros to the data
+        String paddedData = data + "0".repeat(genLength - 1);
+        String temp = paddedData.substring(0, genLength);
 
-    return check_value[1:]  # Remove the leading bit
+        for (int i = 0; i <= paddedData.length() - genLength; i++) {
+            if (temp.charAt(0) == '1') {
+                // Perform XOR if the first bit is 1
+                temp = xor(temp, genPoly);
+            } else {
+                // Keep shifting if the first bit is 0
+                temp = temp.substring(1);
+            }
+            // Shift left and append the next bit
+            if (i + genLength < paddedData.length()) {
+                temp += paddedData.charAt(i + genLength);
+            }
+        }
 
+        // The remainder is the final n-1 bits
+        return temp;
+    }
 
-def receiver(data, gen_poly):
-    """Simulate the receiver side to check for errors."""
-    print("\n-----------------------------")
-    print("Data received:", data)
+    // Receiver side simulation to check for errors
+    public static void receiver(String data, String genPoly) {
+        System.out.println("\n-----------------------------");
+        System.out.println("Data received: " + data);
 
-    # Perform CRC computation on received data
-    remainder = crc(data, gen_poly)
+        // Perform CRC computation on received data
+        String remainder = crc(data, genPoly);
 
-    # Check if the remainder is all zeros
-    if '1' in remainder:
-        print("Error detected")
-    else:
-        print("No error detected")
+        // Check if the remainder is all zeros
+        if (remainder.contains("1")) {
+            System.out.println("Error detected");
+        } else {
+            System.out.println("No error detected");
+        }
+    }
 
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
 
-if __name__ == "__main__":
-    # Input data and generator polynomial
-    data = input("Enter data to be transmitted: ").strip()
-    gen_poly = input("Enter the Generating polynomial: ").strip()
+        // Input data and generator polynomial
+        System.out.print("Enter data to be transmitted: ");
+        String data = scanner.nextLine().trim();
 
-    # Compute CRC check value
-    check_value = crc(data, gen_poly)
-    print("\n----------------------------------------")
-    print("Data padded with n-1 zeros:", data + '0' * (len(gen_poly) - 1))
-    print("CRC or Check value is:", check_value)
+        System.out.print("Enter the Generating polynomial: ");
+        String genPoly = scanner.nextLine().trim();
 
-    # Append check value to data for transmission
-    transmitted_data = data + check_value
-    print("Final data to be sent:", transmitted_data)
-    print("---------------------------------------\n")
+        // Compute CRC check value
+        String checkValue = crc(data, genPoly);
+        System.out.println("\n----------------------------------------");
+        System.out.println("Data padded with n-1 zeros: " + data + "0".repeat(genPoly.length() - 1));
+        System.out.println("CRC or Check value is: " + checkValue);
 
-    # Simulate the receiver side
-    received_data = input("Enter the received data: ").strip()
-    receiver(received_data, gen_poly)
+        // Append check value to data for transmission
+        String transmittedData = data + checkValue;
+        System.out.println("Final data to be sent: " + transmittedData);
+        System.out.println("---------------------------------------\n");
+
+        // Simulate the receiver side
+        System.out.print("Enter the received data: ");
+        String receivedData = scanner.nextLine().trim();
+        receiver(receivedData, genPoly);
+
+        scanner.close();
+    }
+}
+/*
+Enter data to be transmitted: 1001100
+Enter the Generating polynomial: 1101
+
+----------------------------------------
+Data padded with n-1 zeros: 1001100000
+CRC or Check value is: 001
+Final data to be sent: 1001100001
+---------------------------------------
+
+Enter the received data: 1001100001
+
+-----------------------------
+Data received: 1001100001
+No error detected
+
+=== Code Execution Successful ===
+*/
